@@ -40,6 +40,11 @@ Safe & intelligent 1D interpolation and extrapolation engine for Python.
   - 适合数值模型、能源系统规划、经济模型、情景模拟等场景
 
 ---
+## Example
+
+Below shows an example comparing raw linear interpolation and a smooth curve:
+
+![Interpolation Example](safeinterp_example.png)
 
 ## Installation
 
