@@ -3,18 +3,19 @@ name = "safeinterp"
 version = "0.1.0"
 description = "Safe & intelligent 1D interpolation and extrapolation engine for Python."
 readme = "README.md"
-requires-python = ">=3.8"
-license = {file = "LICENSE"}
+license = { file = "LICENSE" }
 authors = [
-    {name = "xubin"}
+    { name = "mrbinxu2025-dotcom" }
 ]
-
+requires-python = ">=3.8"
 dependencies = [
-    "numpy >= 1.20",
+    "numpy>=1.20"
 ]
 
 [project.urls]
 Homepage = "https://github.com/mrbinxu2025-dotcom/safeinterp"
+Source = "https://github.com/mrbinxu2025-dotcom/safeinterp"
+Issues = "https://github.com/mrbinxu2025-dotcom/safeinterp/issues"
 
 [build-system]
 requires = ["setuptools>=61.0"]
