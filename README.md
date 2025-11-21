@@ -1,6 +1,3 @@
-啊我懂你意思了——你是说**最后的 License 那段没有一起包在同一个大代码块里**，复制起来容易乱。那我直接给你一版**从头到尾都在一个 markdown 代码块里的完整 README.md**，你只需要一键全选复制，粘贴到 GitHub 就行。
-
-````markdown
 # safeinterp
 
 Safe & intelligent 1D interpolation and extrapolation engine for Python.
