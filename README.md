@@ -85,14 +85,6 @@ safeinterp 的目标是：
 pip install safeinterp
 ````
 
-在发布到 PyPI 之前，可以通过源码方式安装：
-
-```bash
-git clone https://github.com/mrbinxu2025-dotcom/safeinterp.git
-cd safeinterp
-pip install -e .
-```
-
 ---
 
 ## 🚀 Quickstart / 快速上手
@@ -221,3 +213,4 @@ wind_curve = results["wind"]
 ## 📄 License / 许可证
 
 Distributed under the MIT License. See LICENSE for more information.
+---
