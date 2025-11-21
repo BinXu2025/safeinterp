@@ -1,194 +1,223 @@
 # safeinterp
 
-**Safe, Intelligent, and Adaptive 1D Interpolation Engine for Python**
+Safe & intelligent 1D interpolation and extrapolation engine for Python.
 
-> *Robust curve fitting, multi-segment evolution, and safe extrapolation — designed for numerical modeling, energy planning, and economic scenarios.*
+> Adaptive curve selection, multi-segment fitting, and robust extrapolation – all with a clean, NumPy-friendly API.
 
 <p align="center">
   <a href="https://github.com/mrbinxu2025-dotcom/safeinterp/stargazers">
-    <img src="https://img.shields.io/github/stars/mrbinxu2025-dotcom/safeinterp?style=flat-square&logo=github&label=Stars" alt="GitHub Stars" />
+    <img src="https://img.shields.io/github/stars/mrbinxu2025-dotcom/safeinterp?style=social" />
   </a>
-  <a href="https://github.com/mrbinxu2025-dotcom/safeinterp/blob/main/LICENSE">
-    <img src="https://img.shields.io/github/license/mrbinxu2025-dotcom/safeinterp?style=flat-square&color=blue" alt="License" />
+  <a href="https://github.com/mrbinxu2025-dotcom/safeinterp/actions">
+    <img src="https://img.shields.io/github/actions/workflow/status/mrbinxu2025-dotcom/safeinterp/python-package.yml?label=build" />
   </a>
   <a href="https://pypi.org/project/safeinterp/">
-    <img src="https://img.shields.io/pypi/v/safeinterp?style=flat-square&color=orange" alt="PyPI Version" />
+    <img src="https://img.shields.io/pypi/v/safeinterp?color=blue" />
   </a>
-  <a href="https://github.com/mrbinxu2025-dotcom/safeinterp/issues">
-    <img src="https://img.shields.io/github/issues/mrbinxu2025-dotcom/safeinterp?style=flat-square" alt="Issues" />
+  <a href="https://github.com/mrbinxu2025-dotcom/safeinterp/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/mrbinxu2025-dotcom/safeinterp" />
   </a>
 </p>
 
 ---
 
-## 📖 Introduction / 简介
+## 🚀 Features / 特性概览
 
-**safeinterp** 是一个专为数值稳定性设计的 Python 插值库。它不仅提供常规的插值功能，更专注于解决实际工程中常见的“脏数据”和“边界爆炸”问题。
+- ✅ **Safe preprocessing / 安全预处理**
+  - 自动排序 `x`，去除重复点与“两点过近”的奇异情况
+  - 自动检查 `NaN / Inf` 并提供清晰的错误信息
 
-大多数插值库在面对乱序数据、重复点或极短区间时容易报错或产生奇异值；而 safeinterp 的目标是：
-> **In any scenario, provide a curve that is safe, smooth, and physically plausible.**
-> (在任何场景下，都提供一条安全、平滑且符合物理直觉的曲线。)
+- ✅ **Intelligent auto-mode / 智能插值 (`mode="auto"`)**
+  - 自动从 `linear / power / exp / logistic / cos / sin / poly2 / poly3` 中择优
+  - 对每一小段自动搜索最合适的 `(mode, k)`
+  - 内置整体趋势与单调性约束，减少反冲 / 锯齿抖动
 
----
+- ✅ **Rich curve families / 多种曲线形状（手动模式）**
+  - `linear`：线性  
+  - `power`：幂函数  
+  - `exp`：指数  
+  - `logistic`：S 型  
+  - `sin` / `cos`：缓入缓出  
+  - `poly2` / `poly3`：平滑多项式（smoothstep 风格）
 
-## ✨ Key Features / 核心特性
+- ✅ **Safe extrapolation / 安全外推**
+  - 支持 `edge / linear / exp / power / mirror / auto`
+  - `auto` 模式会自动尝试多种策略，异常时自动 fallback
+  - 尽量避免“爆炸式外推”，优先使用更稳健的边界行为
 
-### 🛡️ **Robust & Safe (稳健安全)**
-- **自动清洗**：自动处理 `x` 乱序、重复点、`NaN/Inf` 以及两点过近导致的数值奇异。
-- **安全外推**：`extrapolate="auto"` 模式自动评估趋势，优先选择稳健的边界行为，防止指数爆炸。
+- ✅ **Batch interpolation / 批量插值**
+  - `batch_interp_curve` 支持多区域、多技术、多情景批量插值
+  - 每个类别可以：
+    - 使用自己的 `x / y / new_x`
+    - 或继承公共 `common_x / common_new_x`
+    - 或用 `start / end / num` 定义单段演化曲线
+  - 完全复用 `interp_curve` 的全部能力
 
-### 🧠 **Intelligent "Auto" Mode (智能模式)**
-- **自适应选择**：对每一小段区间，自动从 `linear`, `power`, `exp`, `logistic` 等 8 种模式中择优。
-- **趋势约束**：内置代价函数考虑了整体趋势和单调性，极大减少了传统插值的“反冲”和“振铃”现象。
-
-### 📈 **Rich Curve Families (丰富的曲线族)**
-支持手动指定多种物理/数学含义明确的曲线形状：
-- **Growth**: `linear` (线性), `power` (幂律), `exp` (指数), `logistic` (S形增长)
-- **Transition**: `sin` / `cos` (三角缓动), `poly2` / `poly3` (平滑多项式/Smoothstep)
-
-### 📦 **Batch Processing (批量插值)**
-- 专为多情景模拟设计：`batch_interp_curve` 可一次性处理成百上千条曲线。
-- **灵活配置**：支持不同序列继承公共坐标轴，或独立指定参数。
-
-### ⚡ **Lightweight (轻量级)**
-- **Pure NumPy**：仅依赖 `numpy`，无其他重型依赖，易于集成到任何环境中。
-
----
-
-## 🆚 Why safeinterp? / 对比
-
-| 常见痛点 (Pain Points) | ❌ 普通插值库 (scipy/numpy) | ✅ safeinterp |
-| :--- | :--- | :--- |
-| **数据质量差** (乱序/重复/NaN) | 报错 / 产生 NaN / 结果震荡 | **自动排序、去重、清洗** |
-| **区间极短** (数值不稳定) | 斜率爆炸 / 浮点溢出 | **自动修正，保证数值稳定** |
-| **外推风险** (Extrapolation) | 简单的线性延伸或无外推 | **多策略智能外推 + 自动回退** |
-| **复杂形态** (Multi-segment) | 只能全局统一模式 | **支持分段指定不同形状 (Mode/K)** |
-| **非单调趋势** | 容易产生非物理的反转 | **内置趋势检测与约束** |
+- ✅ **NumPy-only / 零额外依赖**
+  - 仅依赖 NumPy
+  - 适合数值模型、能源系统规划、经济模型与情景模拟等场景
 
 ---
 
-## 💻 Installation / 安装
+## ❓ Why safeinterp? / 为什么要用 safeinterp？
 
-### Option 1: Install from PyPI (Recommended after release)
+大多数插值库在以下情况会失败或产生危险结果：
+
+| 常见问题                     | 常见库表现           | safeinterp 行为                  |
+|------------------------------|----------------------|----------------------------------|
+| `x` 乱序 / 重复点            | ❌ 报错或结果不稳定  | ✔ 自动排序与去重                |
+| 间距极小 / 极短区间          | ❌ 斜率爆炸 / 抖动   | ✔ 自动修正，避免除零与奇异行为  |
+| `y` 非单调，趋势复杂         | ❌ 曲线突然反转      | ✔ 内置趋势检测与趋势约束        |
+| 指数 / 幂律外推              | ❌ 极易爆炸或崩溃    | ✔ 多策略外推 + 自动 fallback     |
+| 多段曲线、不同段需要不同形状 | ❌ API 不支持        | ✔ 每段可自动/手动选择 `(mode, k)` |
+
+safeinterp 的目标是：
+
+> 尽量做到：不崩溃、不乱炸、少反冲，在复杂情景下仍然给出“看得懂、信得过”的曲线。
+
+---
+
+## 🔧 Installation / 安装
+
+> 🔜 已发布到 PyPI
+
 ```bash
 pip install safeinterp
 ````
 
-### Option 2: Install from Source (For latest updates)
+在发布到 PyPI 之前，可以通过源码方式安装：
 
 ```bash
-git clone [https://github.com/mrbinxu2025-dotcom/safeinterp.git](https://github.com/mrbinxu2025-dotcom/safeinterp.git)
+git clone https://github.com/mrbinxu2025-dotcom/safeinterp.git
 cd safeinterp
-pip install .
+pip install -e .
 ```
 
------
+---
 
-## 🚀 Quick Start / 快速上手
+## 🚀 Quickstart / 快速上手
 
-### 1\. Basic Usage (基础插值)
+### 1. 简单插值
 
 ```python
-import numpy as np
 from safeinterp import interp_curve
 
-# 原始数据
-x = [2020, 2030, 2040, 2050]
-y = [100,  150,  280,  300]
+x = [0, 10, 20, 30]
+y = [0, 2, 8, 9]
 
-# 目标点（包含外推区域）
-new_x = np.arange(2020, 2061, 1)
-
-# 一行代码完成插值 + 外推
-values = interp_curve(x, y, new_x)
+values = interp_curve(x=x, y=y, new_x=[5, 15, 25])
+print(values)
 ```
 
-### 2\. Auto Mode (智能模式)
+---
 
-让算法自动寻找最符合数据趋势的平滑曲线：
+### 2. Auto 模式（智能插值）
 
 ```python
-# mode="auto" 会自动平衡平滑度和趋势贴合度
-values = interp_curve(x, y, new_x, mode="auto", extrapolate="auto")
+from safeinterp import interp_curve
+
+x = [0, 10, 20, 30]
+y = [0, 2, 8, 9]
+new_x = range(0, 31)
+
+values = interp_curve(x=x, y=y, new_x=new_x, mode="auto")
 ```
 
-### 3\. Manual Segments (手动分段控制)
+---
 
-精细控制每一段的演化逻辑（例如：先指数增长，后线性趋稳）：
+### 3. 多段手动模式（自定义每一段的形状）
 
 ```python
+from safeinterp import interp_curve
+
+x = [0, 10, 20, 30]
+y = [0, 2, 8, 9]
+new_x = range(0, 31)
+
 segments = [
-    {"mode": "exp", "k": 1.5},    # 2020-2030: 快速指数增长
-    {"mode": "linear"},           # 2030-2040: 线性过渡
-    {"mode": "logistic", "k": 4}  # 2040-2050: S形饱和
+    {"mode": "linear"},             # [0,10]
+    {"mode": "power", "k": 1.5},    # [10,20]
+    {"mode": "cos"},                # [20,30]
 ]
 
-values = interp_curve(x, y, new_x, segments=segments)
+values = interp_curve(x=x, y=y, new_x=new_x, segments=segments)
 ```
 
-### 4\. Batch Interpolation (批量处理)
+---
 
-适用于能源/经济模型中的多区域、多变量处理：
+### 4. 批量插值（多区域 / 多技术）
 
 ```python
 from safeinterp import batch_interp_curve
 
-data_config = {
-    "solar_capacity": {
-        "y": [0, 50, 200], 
-        "mode": "exp"       # 太阳能按指数增长
+data = {
+    "solar": {
+        "y": [0, 5, 15],
+        "mode": "auto",
     },
-    "coal_capacity": {
-        "y": [500, 480, 200], 
-        "mode": "logistic", # 煤电按 S 形退出
-        "extrapolate": "edge"
-    }
+    "wind": {
+        "y": [0, 3, 12],
+        "mode": "power",
+        "k": 1.2,
+    },
 }
 
-# 共享时间轴
 results = batch_interp_curve(
-    data_config,
-    common_x=[2020, 2030, 2050],
-    common_new_x=range(2020, 2061)
+    data,
+    common_x=[2020, 2030, 2040],
+    common_new_x=range(2020, 2041),
 )
+
+solar_curve = results["solar"]
+wind_curve = results["wind"]
 ```
 
------
+---
 
-## 📊 Visualization / 效果展示
+## 📊 Examples / 示例图
 
-*(Coming soon: Visual comparison charts)*
+> 建议在仓库中放置 `assets/basic.png`, `assets/modes.png`, `assets/extrap.png`，并在下方插入示例图。
 
-> 💡 **Tip**: Check the `examples/` directory for Jupyter Notebooks demonstrating advanced usage.
+### Basic Interpolation
 
------
+![basic](assets/basic.png)
 
-## 🗺️ Roadmap / 路线图
+### Curve Modes
 
-  - [x] v0.1: 核心插值引擎 (Core Engine) & 批量接口 (Batch API)
-  - [ ] v0.2: 增加单调 Hermite 插值模式 (PCHIP 改进版)
-  - [ ] v0.3: 2D Surface Interpolation (二元曲面插值)
-  - [ ] v0.4: Visualization Helpers (内置简单绘图辅助)
-  - [ ] v1.0: 稳定版发布
+![modes](assets/modes.png)
 
------
+### Extrapolation Example
 
-## 🤝 Contributing / 贡献指南
+![extrap](assets/extrap.png)
 
-我们非常欢迎社区贡献！无论是修复 Bug、提交新特性，还是完善文档。
+---
 
-1.  Fork 本仓库
-2.  创建特性分支 (`git checkout -b feature/AmazingFeature`)
-3.  提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4.  推送到分支 (`git push origin feature/AmazingFeature`)
-5.  提交 Pull Request
+## 🗺 Roadmap / 路线图
 
-如果你在**能源规划、经济预测、环境模拟**等领域使用了 `safeinterp`，欢迎在 Issue 中告诉我们要优化哪些特定场景！
+* [ ] 2D surface interpolation（二位曲面插值）
+* [ ] Monotonic Hermite mode（单调 Hermite 模式）
+* [ ] Smoothing spline mode（平滑样条模式）
+* [ ] Visualization helper API（可视化辅助接口）
+* [ ] 发布 PyPI 正式版本
+* [ ] 在线 Demo（Colab / Binder）
 
------
+---
 
-## 📄 License
+## 🤝 Contributing / 参与贡献
 
-Distributed under the MIT License. See `LICENSE` for more information.
+欢迎：
 
------
+* PR（Pull Request）
+* Issue（问题反馈 / Bug 报告）
+* Feature Request（新特性建议）
+
+如果你在能源系统、经济模型或其他数值仿真中使用了 **safeinterp**，
+也非常欢迎在 Issue 里分享你的使用场景。
+
+> 如果你觉得 **safeinterp** 对你有帮助，请点一个 ⭐ Star 支持一下。
+
+---
+
+## 📄 License / 许可证
+
+Distributed under the MIT License. See LICENSE for more information.
