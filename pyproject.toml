@@ -3,7 +3,7 @@ name = "safeinterp"
 version = "0.1.0"
 description = "Safe & intelligent 1D interpolation and extrapolation engine for Python."
 readme = "README.md"
-license = { file = "LICENSE" }
+license = { text = "MIT" }
 authors = [
     { name = "mrbinxu2025-dotcom" }
 ]
@@ -20,3 +20,12 @@ Issues = "https://github.com/mrbinxu2025-dotcom/safeinterp/issues"
 [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["safeinterp"]  # <<--- 关键：只包含 safeinterp
+
+[tool.setuptools.package-data]
+safeinterp = [
+    "*.png",
+    "*.jpg",
+]
