@@ -168,8 +168,6 @@ wind_curve = results["wind"]
 
 ## 📊 Examples / 示例图
 
-> 建议在仓库中放置 `assets/basic.png`, `assets/modes.png`, `assets/extrap.png`，并在下方插入示例图。
-
 ### Basic Interpolation
 
 ![basic](assets/basic.png)
