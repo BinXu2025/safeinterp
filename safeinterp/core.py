@@ -293,7 +293,10 @@ class CurveInterpolator:
         cost += 0.1 * (dy1 - dy0) ** 2
 
         # ③ 在小变化下，惩罚过于“激烈”的模型（exp / logistic 等）
-        change_ratio = abs(dy) / (abs(y0) + 1e-9)
+        # === 使用更合理的尺度因子：避免 y0=0 或很小导致误判 ===
+        scale = max(abs(y0), abs(y1), 1.0)
+        change_ratio = abs(dy) / scale
+        
         if mode in ("exp", "logistic") and change_ratio < 0.2:
             cost *= 1.5
 
@@ -390,47 +393,63 @@ class CurveInterpolator:
         extrapolate: str = "edge",
     ):
         """
-        对给定 new_x 进行插值 + 外推。
+        对 new_x 进行插值 + 外推。
         """
         new_x = np.asarray(new_x, float)
         flat = new_x.ravel()
-        result = np.empty_like(flat)
+
+        # === 1) 创建 result，预置为 NaN ===
+        result = np.full_like(flat, np.nan, dtype=float)
+
+        # 有效点掩码：只对有限值计算
+        mask_valid = np.isfinite(flat)
+        if not np.any(mask_valid):
+            return result.reshape(new_x.shape)
+
+        flat_valid = flat[mask_valid]
+        idx_valid = np.nonzero(mask_valid)[0]
 
         x0, x1 = self.x[0], self.x[-1]
-        inside = (flat >= x0) & (flat <= x1)  # 插值区间内
-        left = flat < x0                      # 左侧外推
-        right = flat > x1                     # 右侧外推
 
-        # ========= 内插部分 =========
+        inside = (flat_valid >= x0) & (flat_valid <= x1)
+        left   = flat_valid < x0
+        right  = flat_valid > x1
+
+        # ==== 2) 内插部分 ====
         if np.any(inside):
-            x_in = flat[inside]
+            x_in = flat_valid[inside]
+            idx_inside = idx_valid[inside]
+
             if segments is not None:
-                # 手动分段
-                result[inside] = self._multi_segment(x_in, segments)
+                values_in = self._multi_segment(x_in, segments)
             elif mode != "auto":
-                # 单段 + 指定 mode
-                result[inside] = self._single_segment(x_in, mode, k)
+                values_in = self._single_segment(x_in, mode, k)
             else:
-                # auto 模式：单段 / 多段智能判断
                 if self.n == 2:
-                    # 只有两个点：仍然走“最佳段选择”逻辑
                     span = self.x[1] - self.x[0]
                     mode_auto, k_auto = self._choose_best_segment(
                         0, self.y[0], self.y[1], span
                     )
-                    result[inside] = self._single_segment(x_in, mode_auto, k_auto)
+                    values_in = self._single_segment(x_in, mode_auto, k_auto)
                 else:
-                    # 多点：全自动多段拟合
                     auto_segs = self._auto_segments()
-                    result[inside] = self._multi_segment(x_in, auto_segs)
+                    values_in = self._multi_segment(x_in, auto_segs)
 
-        # ========= 外推部分 =========
+            result[idx_inside] = values_in
+
+        # ==== 3) 外推部分 ====
         if np.any(left):
-            result[left] = self._auto_extrap(flat[left], "left", extrapolate)
+            x_left = flat_valid[left]
+            idx_left = idx_valid[left]
+            result[idx_left] = self._auto_extrap(x_left, "left", extrapolate)
+
         if np.any(right):
-            result[right] = self._auto_extrap(flat[right], "right", extrapolate)
+            x_right = flat_valid[right]
+            idx_right = idx_valid[right]
+            result[idx_right] = self._auto_extrap(x_right, "right", extrapolate)
 
         return result.reshape(new_x.shape)
+
 
     # --------------------------------------------------------
     #  6. 单段插值（使用首尾两点）
@@ -453,6 +472,11 @@ class CurveInterpolator:
     def _multi_segment(self, new_x: np.ndarray, segments):
         x, y = self.x, self.y
         nseg = len(x) - 1
+        # === 长度校验：segments 必须与段数一致 ===
+        if len(segments) != nseg:
+            raise ValueError(
+                f"segments 长度必须为 {nseg}（即 len(x)-1），当前为 {len(segments)}")
+            
 
         # 找到每个 new_x 所在的段 index：x[i] <= new_x < x[i+1]
         idx = np.searchsorted(x, new_x, side="right") - 1
@@ -553,6 +577,8 @@ class CurveInterpolator:
         if method == "power":
             if x0 <= 0 or x1 <= 0 or y0 <= 0 or y1 <= 0:
                 raise ValueError("power 外推需 x,y>0")
+            if np.any(new_x <= 0):
+                raise ValueError("power 外推需 new_x>0")
             p = np.log(y1 / y0) / np.log(x1 / x0)
             if side == "left":
                 return y0 * (new_x / x0) ** p
@@ -818,7 +844,7 @@ def batch_interp_curve(
     函数会自动判断每个类别应当使用哪种插值方式，
     并保证批量行为与单类别 interp_curve 保持完全一致。
     """
-
+    
     # ==================================================================
     # A) 参数合法性检查
     # ==================================================================
